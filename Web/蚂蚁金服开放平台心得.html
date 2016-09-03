@@ -1,0 +1,64 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <link rel="Stylesheet" type="text/css" href="/static/css/style.css">
+    <link rel="Stylesheet" type="text/css" href="/static/css/tango.css">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="alternate" type="application/atom+xml" href="atom.xml" title="Atom feed">
+    <title>蚂蚁金服开放平台心得 - ZericZhao Persional WikiSite</title>
+    <meta name="keywords" content="互联网 Java 3D打印"/>
+    <meta name="description" content="个人知识随笔，没啥系统性，欢迎参观"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+
+  <body>
+    <div id="container">
+      
+<div id="header">
+  <div class="post-nav"><a href="/">Home</a>&nbsp;&#187;&nbsp;<a href="/#Web">Web</a>&nbsp;&#187;&nbsp;蚂蚁金服开放平台心得
+    <span class="updated">Updated&nbsp;
+      2016-08-29 18:17
+    </span></div>
+</div>
+<div class="clearfix"></div>
+
+<div class="page_title">蚂蚁金服开放平台心得</div>
+
+  <div class="toc"><span class="toctitle">Table of Contents</span><ul>
+<li><a href="#_1">蚂蚁金服开放平台心得</a></li>
+</ul>
+</div>
+<h1 id="_1">蚂蚁金服开放平台心得</h1>
+<p>Tags: [蚂蚁金服,java]</p>
+<hr />
+<p>最近实习的一个项目是做一个通过支付宝向用户发送红包的Demo，查阅了相关文档发现蚂蚁金服开放平台并没有提供发红包的接口，只有一个<strong>批量付款到支付宝账户</strong>的<strong>历史接口</strong>似乎可以起到“曲线救国”的作用。不过第二天蚂蚁金服的文档中就加了这么一句：</p>
+<blockquote>
+<p>TIPS：以下列表内的产品将逐步升级更新，新商家不建议接入，不影响老商户正常使用业务功能。</p>
+</blockquote>
+<p>不过看蚂蚁金服的动作，最近也不会立刻把批量付款接口升级，还是先做，接口改了或者加入发红包的API时再修改自己的代码。仔细阅读文档能明显看到历史接口和当前新接口在使用方法上的不同，甚至连网关的三级域名都不一样：</p>
+<blockquote>
+<p>新网关：https://openapi.alipay.com/gateway.do
+老网关：https://mapi.alipay.com/gateway.do</p>
+</blockquote>
+<p>从文档中发现，批量付款需要收款方支付宝账户名和收款方<strong>姓名</strong>，这里应该是指真实姓名，这样就很麻烦了，毕竟很少有人会为了几块钱的红包把自己的真实姓名发给一个陌生的企业。
+我立刻想到了支付宝应该开放了获取用户信息的接口，只要经过了用户授权，就可以获得用户的共享信息。再次查阅文档，果然存在这样的接口，API的返回参数中也包含<code>email</code>和<code>real_name</code>这样的字段。在窃喜的同时也担心了一下自己的支付宝个人信息是不是也会被其他人简单获取，不过很快我就转喜为忧了。</p>
+<p>首先是在真实环境中测试代码时，请求被阿里钱盾拦截，提示网站被举报含有欺诈信息。这真是天大的冤枉，我们开发的应用才刚刚部署，根本就处在无人问津的状态，欺骗谁去呢？这个问题困扰了我2天左右，一开始我认为是在蚂蚁金服开放平台的应用信息不完整，应用没有正式上线，不让我们获取用户信息。结果填写完应用上线的手续并将应用提交上线后，问题依然存在。难道是回调用的URL出了问题？我们测试使用的二级域名是在花生壳上购买的，可能是个共享货，以前被人举报过。那就换个域名试试吧，顺便也把Demo部署到测试环境中。结果真的成功了，使用我的个人账号测试时成功获取了我的信息。
+悲剧还在后面，获取的信息里面根本没有我的支付宝账号和真实姓名，这就完全没办法发红包了（当然也长舒一口气，看来支付宝对隐私还是挺重视的）。老大说，那就先把用户信息写死，把流程走通。</p>
+<p>可流程......最后也没能走通。</p>
+<p>支付宝批量付款接口的适配是在获取用户信息之前完成的，但帐号中没钱，沙箱也不支持，一直只在做离线测试。这次上线一测，发现不只是钱的问题，支付宝直接反馈<code>ILLEGAL_PARTNER_EXTERFACE</code>，文档中没有相关解释，询问支付宝的技服机器人，告诉我“您的账号没有签约”。签约啥？机器人只给了我一个电话。果断转人工，人工也只给我一个电话。没办法，打个电话过去，告诉我需要签约收付款中的任意一项服务（当面付、手机网站支付等等）。
+这不是开玩笑呢么？我们又不是出售商品的公司，根本就没有电商网站阿。没办法硬着头皮上吧，想办法糊弄过去把。</p>
+<p>目前开发进度到此了，整个开发过程感觉支付宝和微信支付走的完全不是一条路，微信支付2015年就开通了商家现金红包的功能，玩法还特别多，很重视社交互动；而支付宝则为商家收退款提供了极其全面的服务，甚至细化到针对不同行业进行个性服务的程度。蚂蚁金服平台虽然也能给用户发红包，但这红包几乎全是“店铺优惠券”，高级点的即使不是店铺专用，也不能提现。个人对支付宝发红包项目的预期：<strong>药丸</strong></p>
+<hr />
+<p>8月31日更新：
+公司对支付宝发红包还挺有所期待，希望能做出可行的方案吧，虽然体验估计无法和微信相提并论。</p>
+    </div>
+    <div id="footer">
+      <span>
+        <p>Copyright © 2016 Zeric Zhao.
+        Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
+        <p>Site Generated 2016-09-03 13:21:23</p>
+      </span>
+    </div>
+  </body>
+</html>
