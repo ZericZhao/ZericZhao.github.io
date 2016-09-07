@@ -1,0 +1,126 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <link rel="Stylesheet" type="text/css" href="/static/css/style.css">
+    <link rel="Stylesheet" type="text/css" href="/static/css/tango.css">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="alternate" type="application/atom+xml" href="atom.xml" title="Atom feed">
+    <title>将前端模板从JSP向Thymeleaf迁移 - ZericZhao Persional WikiSite</title>
+    <meta name="keywords" content="互联网 Java 3D打印"/>
+    <meta name="description" content="个人知识随笔，没啥系统性，欢迎参观"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+
+  <body>
+    <div id="container">
+      
+<div id="header">
+  <div class="post-nav"><a href="/">Home</a>&nbsp;&#187;&nbsp;<a href="/#Spring">Spring</a>&nbsp;&#187;&nbsp;将前端模板从JSP向Thymeleaf迁移
+    <span class="updated">Updated&nbsp;
+      2016-09-07 08:36
+    </span></div>
+</div>
+<div class="clearfix"></div>
+
+<div class="page_title">将前端模板从JSP向Thymeleaf迁移</div>
+
+  <div class="toc"><span class="toctitle">Table of Contents</span><ul>
+<li><a href="#_1">起因</a></li>
+<li><a href="#jspthymeleaf">JSP与Thymeleaf区别</a></li>
+<li><a href="#thymeleaf">Thymeleaf的几个坑</a><ul>
+<li><a href="#1foreach">1.Foreach迭代</a></li>
+<li><a href="#2uri">2.获取当前uri</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<h1 id="_1">起因</h1>
+<p>在学习Java和Spring架构之前，我并未接触过JSP相关的内容，反而由于用了近一年的php，对HTML和JavaScript相关技术较为熟悉。当然，JSP作为前端模板，使用的JSTL标签语法和使用上都很简单，可我还是对纯HTML页面情有独钟。Thymeleaf对HTML的支持很完善，尤其Thymeleaf模板可以直接当作静态HTML页面打开而很少存在兼容性问题，这种良好解耦的设计让我十分佩服，也减少了前后端整合的麻烦。</p>
+<p>当然，Velocity模板也支持对HTML页面进行渲染，不过我对Velocity了解不多，学习时使用的《Spring实战(Spring in Action)》上也没介绍Velocity，Thymeleaf又够用，何必把大把时间花在选择技术方案上呢？</p>
+<h1 id="jspthymeleaf">JSP与Thymeleaf区别</h1>
+<p>这部分也算是套路了，不过套路部分我不想直接引用或摘抄网上的教程、博客的内容，我只想说说自己的理解，虽然可能会不尽完善、语无伦次。</p>
+<p>JSP和Thymeleaf在标签上区别极大，一般来说使用JSP时先导入命名空间：</p>
+<div class="hlcode"><pre><span class="err">&lt;</span>%@ taglib prefix=&quot;c&quot;uri=&quot;http://java.sun.com/jsp/jstl/core&quot; %&gt;
+<span class="err">&lt;</span>%@ taglib prefix=&quot;sf&quot; uri=&quot;http://www.springframework.org/tags/form&quot; %&gt;
+</pre></div>
+
+
+<p>使用标签渲染URL、form、input等元素，进行逻辑判断：</p>
+<div class="hlcode"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">&quot;&lt;c:url value=&quot;</span><span class="err">/</span><span class="na">register</span><span class="err">&quot;</span><span class="nt">/&gt;</span>&quot;&gt;Register<span class="nt">&lt;/a&gt;</span>
+<span class="nt">&lt;sf:form</span> <span class="na">method=</span><span class="s">&quot;post&quot;</span> <span class="na">modelAttribute=</span><span class="s">&quot;user&quot;</span> <span class="na">cssClass=</span><span class="s">&quot;form-horizontal&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;sf:input</span> <span class="na">path=</span><span class="s">&quot;firstName&quot;</span> <span class="na">id=</span><span class="s">&quot;firstName&quot;</span> <span class="na">cssClass=</span><span class="s">&quot;form-control input-sm&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/sf:form&gt;</span>
+<span class="nt">&lt;c:choose&gt;</span>
+  <span class="nt">&lt;c:when</span> <span class="na">test=</span><span class="s">&quot;${edit}&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;input</span> <span class="na">xxx</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;/c:when&gt;</span>
+  <span class="nt">&lt;c:otherwise&gt;</span>
+    <span class="nt">&lt;input</span> <span class="na">xxx</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;/c:otherwise&gt;</span>
+<span class="nt">&lt;/c:choose&gt;</span>
+...
+</pre></div>
+
+
+<p>而Thymeleaf也需要导入命名空间：</p>
+<div class="hlcode"><pre><span class="nt">&lt;html</span> <span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/1999/xhtml&quot;</span> <span class="na">xmlns:th=</span><span class="s">&quot;http://www.thymeleaf.org&quot;</span><span class="nt">&gt;</span>
+</pre></div>
+
+
+<p>渲染HTML元素时不用修改标签，直接改属性</p>
+<div class="hlcode"><pre><span class="nt">&lt;a</span> <span class="na">class=</span><span class="s">&quot;btn btn-cta-primary&quot;</span> <span class="na">th:href=</span><span class="s">&quot;@{/user/newuser}&quot;</span><span class="nt">&gt;</span>Sign up<span class="nt">&lt;/a&gt;</span>
+<span class="nt">&lt;form</span> <span class="na">th:action=</span><span class="s">&quot;@{${#request.getRequestURI()}}&quot;</span> <span class="na">method=</span><span class="s">&quot;post&quot;</span> <span class="na">class=</span><span class="s">&quot;form-horizontal&quot;</span> <span class="na">th:object=</span><span class="s">&quot;${user}&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">&quot;firstName&quot;</span> <span class="na">class=</span><span class="s">&quot;form-control input-sm&quot;</span> <span class="na">th:field=</span><span class="s">&quot;*{firstName}&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/form&gt;</span>
+<span class="nt">&lt;input</span> <span class="na">th:if=</span><span class="s">&quot;${edit}&quot;</span> <span class="na">th:field=</span><span class="s">&quot;*{userProfiles}&quot;</span> <span class="na">id=</span><span class="s">&quot;userProfiles&quot;</span> <span class="na">name=</span><span class="s">&quot;userProfiles&quot;</span> <span class="na">class=</span><span class="s">&quot;form-control input-sm&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;input</span> <span class="na">th:unless=</span><span class="s">&quot;${edit}&quot;</span> <span class="na">th:field=</span><span class="s">&quot;*{userProfiles}&quot;</span> <span class="na">id=</span><span class="s">&quot;userProfiles&quot;</span> <span class="na">name=</span><span class="s">&quot;userProfiles&quot;</span> <span class="na">class=</span><span class="s">&quot;form-control input-sm&quot;</span><span class="nt">&gt;</span>
+</pre></div>
+
+
+<p>可以很直观地看到，Thymeleaf用起来更加简洁。而且由于HTML的解释器会直接忽略不能识别的属性，这些代码在浏览器里运行时也不会出现严重变形，非常方便前端开发和整合。</p>
+<p>从本质上讲，JSP的思路是使用模板渲染器生成HTML元素，而Thymeleaf则是在原有的HTML元素基础上进行修改。在H5发展迅速功能丰富的现在，我更加倾向于使用后者。</p>
+<h1 id="thymeleaf">Thymeleaf的几个坑</h1>
+<h2 id="1foreach">1.Foreach迭代</h2>
+<p>先看一个示例：</p>
+<div class="hlcode"><pre><span class="nt">&lt;ul&gt;</span>
+  <span class="nt">&lt;li</span> <span class="na">th:each=</span><span class="s">&quot;err:${#fields.allErrors()}&quot;</span><span class="na">th:text=</span><span class="s">&quot;${err}&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ul&gt;</span>
+</pre></div>
+
+
+<p>这个示例中跑起来大概就是这样：</p>
+<div class="hlcode"><pre><span class="nt">&lt;ul&gt;</span>
+  <span class="nt">&lt;li&gt;</span>error content 1<span class="nt">&lt;/li&gt;</span>
+  <span class="nt">&lt;li&gt;</span>error content 2<span class="nt">&lt;/li&gt;</span>
+  ...
+<span class="nt">&lt;/ul&gt;</span>
+</pre></div>
+
+
+<p>即是说，each迭代的内容包含自己所属元素和本元素的子元素(children)，与JSP是不同的。这种特点在if判断中也存在。</p>
+<h2 id="2uri">2.获取当前uri</h2>
+<p>有的时候，同一页面<code>form</code>元素里提交用的<code>action</code>路径并不是固定的，而是向当前uri提交。这点JSP比较容易做到，在<code>&lt;sf:form&gt;</code>元素的<code>action</code>属性默认就是当前uri。而传统HTML的<code>&lt;form&gt;</code>元素中如果不写<code>action</code>属性，表单就无法提交，Thymeleaf模板中还是必须要改写<code>action</code>属性，如何获取当前uri就是个问题。</p>
+<p>好在Thymeleaf的渲染器可以获取应用上下文内容，上下文中HttpServletRequest有getRequestURI()方法，所以修改<code>form</code>元素如下即可：</p>
+<div class="hlcode"><pre><span class="nt">&lt;form</span> <span class="na">th:action=</span><span class="s">&quot;@{${#request.getRequestURI()}}&quot;</span><span class="na">method=</span><span class="s">&quot;post&quot;</span><span class="nt">&gt;&lt;/form&gt;</span>
+</pre></div>
+  <div class="relation">
+    <h2>Related</h2>
+    <ul>
+    
+    <li><a href="/Web/蚂蚁金服开放平台心得.html">蚂蚁金服开放平台心得</a></li>
+    
+    <li><a href="/Spring/SpringSecurity4学习杂感.html">Spring Security4 学习杂感</a></li>
+    
+    </ul>
+  </div>
+    </div>
+    <div id="footer">
+      <span>
+        <p>Copyright © 2016 Zeric Zhao.
+        Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
+        <p>Site Generated 2016-09-07 10:51:34</p>
+      </span>
+    </div>
+  </body>
+</html>

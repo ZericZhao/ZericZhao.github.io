@@ -26,16 +26,10 @@
 <div class="page_title">mySQL/mariadb使用个人总结</div>
 
   <div class="toc"><span class="toctitle">Table of Contents</span><ul>
-<li><a href="#mysqlmariadb">mySQL/mariadb使用个人总结</a><ul>
 <li><a href="#1ip">1.IP地址存储方案</a></li>
 </ul>
-</li>
-</ul>
 </div>
-<h1 id="mysqlmariadb">mySQL/mariadb使用个人总结</h1>
-<p>Tags: [DB]</p>
-<hr />
-<h2 id="1ip">1.IP地址存储方案</h2>
+<h1 id="1ip">1.IP地址存储方案</h1>
 <p>曾经看过一篇短文总结mysql技巧的，其中提到IP地址不要使用varchar(15)存储，用int更省空间。后来实战时在网上检索发现IP地址还可以用varbinary(4),tinyint(4)来存储。其实这3中种方案占用空间是一样的，但查询速度不一样，这篇文章<a href="http://www.cnblogs.com/skynet/archive/2011/01/09/1931044.html">《论IP地址在数据库中应该用何种形式存储》</a>提到varbinary(4)存取效果最好，但代码中明显带有计算过程，并不是简单的存取，这个结论对我的指导意义就没那么大了。</p>
 <p>想想看，还是先用int型存储，以后再换。</p>
 <p>还有问题就是，为何不用varchar(4)?</p>
@@ -44,7 +38,7 @@
       <span>
         <p>Copyright © 2016 Zeric Zhao.
         Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
-        <p>Site Generated 2016-09-03 13:21:23</p>
+        <p>Site Generated 2016-09-07 10:51:34</p>
       </span>
     </div>
   </body>
